@@ -1,19 +1,26 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * import {onCall} from "firebase-functions/v2/https";
- * import {onDocumentWritten} from "firebase-functions/v2/firestore";
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
+import * as functions from "firebase-functions";
+import * as admin from "firebase-admin";
+admin.initializeApp();
 
-import {onRequest} from "firebase-functions/v2/https";
-import * as logger from "firebase-functions/logger";
+const db = admin.firestore();
 
-// Start writing functions
-// https://firebase.google.com/docs/functions/typescript
+export const createDocument = functions.https.onRequest(async (req, res) => {
+  await db.collection("test").doc("abc").set({a: 123});
+  res.send();
+});
 
-// export const helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+export const updateDocument = functions.https.onRequest(async (req, res) => {
+  await db.collection("test").doc("abc").update({a: 234, b: 345});
+  res.send();
+});
+
+export const deleteDocument = functions.https.onRequest(async (req, res) => {
+  await db.collection("test").doc("abc").delete();
+  res.send();
+});
+
+export const getDocument = functions.https.onRequest(async (req, res) => {
+  const data = await (await db.collection("test").doc("abc").get()).data();
+  res.send(data);
+});
+

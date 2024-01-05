@@ -1,5 +1,6 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
+
 admin.initializeApp();
 
 const db = admin.firestore();
@@ -30,7 +31,20 @@ export const snippet_onWrite = functions.firestore
   .onWrite(async (change, context) => {
     console.log("start snippet_onWrite");
     const afterData = change.after.exists ? change.after.data() : null;
-    if (afterData) await admin.firestore().collection("bak").doc(change.after.id).set(afterData);
+    if (afterData == null) return;
+
+    // 単体書き込み ------------------------------
+    await admin.firestore().collection("bak1").doc(change.after.id).set(afterData);
     // if (afterData) await db.collection("bak").doc(change.after.id).set(afterData);  // これでもOK
+
+    // トランザクション ------------------------------
+    await admin.firestore().runTransaction(async (transaction) => {
+      if (change.before.exists && !change.after.exists) {
+        // onDelete
+      } else {
+        // onCreate or onUpdate
+        transaction.set(admin.firestore().collection("bak2").doc(change.after.id), { afterData });
+      }
+    });
   });
 
